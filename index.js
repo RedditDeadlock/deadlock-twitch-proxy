@@ -69,7 +69,7 @@ async function getAccessToken() {
     return tokenRefreshPromise;
 }
 
-// 2. The Public Endpoint your Bot will call
+// 2. The Public Endpoint the Bot will call
 app.get('/streams', async (_req, res) => {
     try {
         // Return cached data if still valid (cache for 60 seconds)
@@ -106,7 +106,42 @@ app.get('/streams', async (_req, res) => {
     }
 });
 
-// 3. Health Check
+// 3. Debug endpoint to search for Deadlock game ID
+app.get('/debug/game', async (_req, res) => {
+    try {
+        const token = await getAccessToken();
+        
+        // Try both "Deadlock" and by the slug
+        const [nameRes, slugRes] = await Promise.all([
+            fetch('https://api.twitch.tv/helix/games?name=Deadlock', {
+                headers: {
+                    'Client-ID': CLIENT_ID,
+                    'Authorization': `Bearer ${token}`
+                }
+            }),
+            fetch('https://api.twitch.tv/helix/games?igdb_id=322644', {
+                headers: {
+                    'Client-ID': CLIENT_ID,
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+        ]);
+
+        const nameData = await nameRes.json();
+        const slugData = await slugRes.json();
+        
+        res.json({
+            byName: nameData,
+            byIGDB: slugData,
+            note: "Check the 'id' field in the results above. That's what you need for game_id parameter."
+        });
+    } catch (error) {
+        console.error('Error fetching game:', error);
+        res.status(500).json({ error: 'Failed to fetch game info' });
+    }
+});
+
+// 4. Health Check
 app.get('/', (_req, res) => res.send('Deadlock Proxy is running!'));
 
 app.listen(PORT, () => {
