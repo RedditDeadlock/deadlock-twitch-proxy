@@ -79,8 +79,8 @@ app.get('/streams', async (_req, res) => {
 
         const token = await getAccessToken();
 
-        // Game ID for Deadlock is 322644
-        const streamRes = await fetch('https://api.twitch.tv/helix/streams?game_id=322644&first=5', {
+        // Game ID for Deadlock is 2132205352
+        const streamRes = await fetch('https://api.twitch.tv/helix/streams?game_id=2132205352&first=5', {
             headers: {
                 'Client-ID': CLIENT_ID,
                 'Authorization': `Bearer ${token}`
